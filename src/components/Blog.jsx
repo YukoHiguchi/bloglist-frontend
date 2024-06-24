@@ -1,10 +1,10 @@
-import { useState } from "react"
+import { useState } from 'react'
 const Blog = ({ blog, updateBlog, removeBlog }) => {
   const [detailVisible, setDetailVisible] = useState(false)
   const blogStyle = {
     paddingTop: 10,
     paddingLeft: 2,
-    border: "solid",
+    border: 'solid',
     borderWidth: 1,
     marginBottom: 5,
   }
@@ -26,9 +26,9 @@ const Blog = ({ blog, updateBlog, removeBlog }) => {
   return (
     <div style={blogStyle}>
       <div>
-        {blog.title} {blog.author}{" "}
+        {blog.title} {blog.author}{' '}
         <button onClick={() => setDetailVisible(!detailVisible)}>
-          {detailVisible ? "hide" : "view"}
+          {detailVisible ? 'hide' : 'view'}
         </button>
         {detailVisible && (
           <div>

@@ -1,16 +1,16 @@
-import { useState, useEffect, useRef } from "react"
-import Blog from "./components/Blog"
-import blogService from "./services/blogs"
-import loginService from "./services/login"
-import LoginForm from "./components/LoginForm"
-import BlogForm from "./components/BlogForm"
-import Notification from "./components/Nortification"
-import Togglable from "./components/Togglable"
+import { useState, useEffect, useRef } from 'react'
+import Blog from './components/Blog'
+import blogService from './services/blogs'
+import loginService from './services/login'
+import LoginForm from './components/LoginForm'
+import BlogForm from './components/BlogForm'
+import Notification from './components/Nortification'
+import Togglable from './components/Togglable'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
   const [message, setMessage] = useState(null)
@@ -19,7 +19,7 @@ const App = () => {
   const blogFormRef = useRef()
 
   useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem("loggedBlogappUser")
+    const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
       setUser(user)
@@ -48,14 +48,14 @@ const App = () => {
     event.preventDefault()
     try {
       const user = await loginService.login({ username, password })
-      window.localStorage.setItem("loggedBlogappUser", JSON.stringify(user))
+      window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user))
       blogService.setToken(user.token)
       setUser(user)
-      setUsername("")
-      setPassword("")
+      setUsername('')
+      setPassword('')
     } catch (exception) {
       setIsSuccess(false)
-      setMessage("wrong username or password")
+      setMessage('wrong username or password')
       setTimeout(() => {
         setMessage(null)
       }, 5000)
@@ -63,7 +63,7 @@ const App = () => {
   }
 
   const handleLogout = () => {
-    window.localStorage.removeItem("loggedBlogappUser")
+    window.localStorage.removeItem('loggedBlogappUser')
     setUser(null)
   }
 
@@ -81,7 +81,7 @@ const App = () => {
         }, 5000)
       })
     } catch (exception) {
-      setMessage("something wrong happended while adding a blog")
+      setMessage('something wrong happended while adding a blog')
       setIsSuccess(false)
       setTimeout(() => {
         setMessage(null)
@@ -93,7 +93,7 @@ const App = () => {
     try {
       blogService.update(blogObject.id, blogObject).then((returnedBlog) => {
         setBlogs(
-          blogs.map((blog) => (blog.id != blogObject.id ? blog : returnedBlog))
+          blogs.map((blog) => (blog.id !== blogObject.id ? blog : returnedBlog))
         )
         setIsSuccess(true)
         setMessage(
@@ -104,7 +104,7 @@ const App = () => {
         }, 5000)
       })
     } catch (exception) {
-      setMessage("something wrong happended while updating a blog")
+      setMessage('something wrong happended while updating a blog')
       setIsSuccess(false)
       setTimeout(() => {
         setMessage(null)
@@ -115,10 +115,10 @@ const App = () => {
   const removeBlog = (id) => {
     try {
       blogService.remove(id).then((response) => {
-        setBlogs(blogs.filter((blog) => blog.id != id))
+        setBlogs(blogs.filter((blog) => blog.id !== id))
       })
     } catch (exception) {
-      console.log("exception", exception)
+      console.log('exception', exception)
     }
   }
 
