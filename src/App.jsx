@@ -1,22 +1,25 @@
-import { useState, useEffect } from "react"
-import Blog from "./components/Blog"
-import blogService from "./services/blogs"
-import loginService from "./services/login"
-import LoginForm from "./components/LoginForm"
-import BlogForm from "./components/BlogForm"
-import Notification from "./components/Nortification"
+import { useState, useEffect, useRef } from 'react'
+import Blog from './components/Blog'
+import blogService from './services/blogs'
+import loginService from './services/login'
+import LoginForm from './components/LoginForm'
+import BlogForm from './components/BlogForm'
+import Notification from './components/Nortification'
+import Togglable from './components/Togglable'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
   const [message, setMessage] = useState(null)
   const [isSuccess, setIsSuccess] = useState(true)
 
+  const blogFormRef = useRef()
+
   useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem("loggedBlogappUser")
+    const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
       setUser(user)
@@ -25,21 +28,27 @@ const App = () => {
   }, [])
 
   useEffect(() => {
-    blogService.getAll().then((blogs) => setBlogs(blogs))
+    blogService.getAll().then((blogs) => {
+      setBlogs(sortByLikes(blogs))
+    })
   }, [])
 
+  /* The sortByLikes function sorts the blogs of an array descendant order by likes */
+  const sortByLikes = (blogs) => {
+    return blogs.sort((a, b) => b.likes - a.likes)
+  }
   const handleLogin = async (event) => {
     event.preventDefault()
     try {
       const user = await loginService.login({ username, password })
-      window.localStorage.setItem("loggedBlogappUser", JSON.stringify(user))
+      window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user))
       blogService.setToken(user.token)
       setUser(user)
-      setUsername("")
-      setPassword("")
+      setUsername('')
+      setPassword('')
     } catch (exception) {
       setIsSuccess(false)
-      setMessage("wrong username or password")
+      setMessage('wrong username or password')
       setTimeout(() => {
         setMessage(null)
       }, 5000)
@@ -47,14 +56,15 @@ const App = () => {
   }
 
   const handleLogout = () => {
-    window.localStorage.removeItem("loggedBlogappUser")
+    window.localStorage.removeItem('loggedBlogappUser')
     setUser(null)
   }
 
   const createBlog = (blogObject) => {
     try {
+      blogFormRef.current.toggleVisibility()
       blogService.create(blogObject).then((returnedBlog) => {
-        setBlogs(blogs.concat(returnedBlog))
+        setBlogs(sortByLikes(blogs.concat(returnedBlog)))
         setIsSuccess(true)
         setMessage(
           `a new blog ${returnedBlog.title} by ${returnedBlog.author} added`
@@ -64,11 +74,48 @@ const App = () => {
         }, 5000)
       })
     } catch (exception) {
-      setMessage("something wrong happended while adding a blog")
+      setMessage('something wrong happended while adding a blog')
       setIsSuccess(false)
       setTimeout(() => {
         setMessage(null)
       }, 5000)
+    }
+  }
+
+  const updateBlog = (blogObject) => {
+    try {
+      blogService.update(blogObject.id, blogObject).then((returnedBlog) => {
+        setBlogs(
+          sortByLikes(
+            blogs.map((blog) =>
+              blog.id !== blogObject.id ? blog : returnedBlog
+            )
+          )
+        )
+        setIsSuccess(true)
+        setMessage(
+          `the blog ${returnedBlog.title} by ${returnedBlog.author} was updated`
+        )
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
+      })
+    } catch (exception) {
+      setMessage('something wrong happended while updating a blog')
+      setIsSuccess(false)
+      setTimeout(() => {
+        setMessage(null)
+      }, 5000)
+    }
+  }
+
+  const removeBlog = (id) => {
+    try {
+      blogService.remove(id).then((response) => {
+        setBlogs(blogs.filter((blog) => blog.id !== id))
+      })
+    } catch (exception) {
+      console.log('exception', exception)
     }
   }
 
@@ -94,9 +141,18 @@ const App = () => {
       <h2>blogs</h2>
       <Notification isSuccess={isSuccess} message={message} />
       {user.name} logged in <button onClick={handleLogout}>logout</button>
-      <BlogForm createBlog={createBlog} />
+      <Togglable buttonLabel='new blog' ref={blogFormRef}>
+        <BlogForm createBlog={createBlog} />
+      </Togglable>
       {blogs.map((blog) => (
-        <Blog key={blog.id} blog={blog} />
+        <Blog
+          key={blog.id}
+          blog={blog}
+          updateBlog={updateBlog}
+          removeBlog={
+            user.username === blog?.user?.username ? removeBlog : null
+          }
+        />
       ))}
     </div>
   )
