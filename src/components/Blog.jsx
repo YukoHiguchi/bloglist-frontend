@@ -9,6 +9,8 @@ const Blog = ({ blog, updateBlog, removeBlog }) => {
     marginBottom: 5,
   }
 
+  const showWhenVisible = { display: detailVisible ? '' : 'none' }
+
   const handleUpdateLikes = () => {
     const newBlog = {
       ...blog,
@@ -25,23 +27,20 @@ const Blog = ({ blog, updateBlog, removeBlog }) => {
 
   return (
     <div style={blogStyle}>
-      <div>
+      <div className='title-author'>
         {blog.title} {blog.author}{' '}
         <button onClick={() => setDetailVisible(!detailVisible)}>
           {detailVisible ? 'hide' : 'view'}
         </button>
-        {detailVisible && (
-          <div>
-            {blog.id} <br />
-            {blog.url}
-            <br />
-            {blog.likes} <button onClick={handleUpdateLikes}>like</button>
-            <br />
-            {blog?.user?.name}
-            <br />
-            {removeBlog && <button onClick={handleRemoveBlog}>remove</button>}
-          </div>
-        )}
+      </div>
+      <div className='detail' style={showWhenVisible}>
+        <div>{blog.url}</div>
+        <div>
+          <span className='likes'>{blog.likes}</span>{' '}
+          <button onClick={handleUpdateLikes}>like</button>
+        </div>
+        <div className='bloguser'>{blog?.user?.name}</div>
+        {removeBlog && <button onClick={handleRemoveBlog}>delete</button>}
       </div>
     </div>
   )

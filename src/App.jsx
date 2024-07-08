@@ -33,16 +33,9 @@ const App = () => {
     })
   }, [])
 
+  /* The sortByLikes function sorts the blogs of an array descendant order by likes */
   const sortByLikes = (blogs) => {
-    return blogs.sort((a, b) => {
-      if (a.likes > b.likes) {
-        return 1
-      } else if (a.likes < b.likes) {
-        return -1
-      } else {
-        return 0
-      }
-    })
+    return blogs.sort((a, b) => b.likes - a.likes)
   }
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -93,7 +86,11 @@ const App = () => {
     try {
       blogService.update(blogObject.id, blogObject).then((returnedBlog) => {
         setBlogs(
-          blogs.map((blog) => (blog.id !== blogObject.id ? blog : returnedBlog))
+          sortByLikes(
+            blogs.map((blog) =>
+              blog.id !== blogObject.id ? blog : returnedBlog
+            )
+          )
         )
         setIsSuccess(true)
         setMessage(
@@ -144,7 +141,7 @@ const App = () => {
       <h2>blogs</h2>
       <Notification isSuccess={isSuccess} message={message} />
       {user.name} logged in <button onClick={handleLogout}>logout</button>
-      <Togglable buttonLabel='new note' ref={blogFormRef}>
+      <Togglable buttonLabel='new blog' ref={blogFormRef}>
         <BlogForm createBlog={createBlog} />
       </Togglable>
       {blogs.map((blog) => (
