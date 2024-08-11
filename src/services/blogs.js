@@ -12,9 +12,18 @@ const getAll = () => {
   return request.then((response) => response.data)
 }
 
-const update = (id, newObject) => {
-  const request = axios.put(`${baseUrl}/${id}`, newObject, getConfit())
+const getBlogById = (id) => {
+  const request = axios.get(`${baseUrl}/${id}`)
   return request.then((response) => response.data)
+}
+
+const update = async (newObject) => {
+  const response = await axios.put(
+    `${baseUrl}/${newObject.id}`,
+    newObject,
+    getConfit()
+  )
+  return response.data
 }
 
 const create = async (newObject) => {
@@ -27,4 +36,13 @@ const remove = async (id) => {
   return response.data
 }
 
-export default { getAll, create, update, remove }
+const addComment = async ({ id, content }) => {
+  const response = await axios.post(
+    `${baseUrl}/${id}/comments`,
+    { content: content },
+    getConfit()
+  )
+  return response.data
+}
+
+export default { getAll, create, update, remove, getBlogById, addComment }

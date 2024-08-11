@@ -1,59 +1,111 @@
-import React, { useState } from 'react'
-import PropTypes from 'prop-types'
-import storage from '../services/storage'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import blogService from '../services/blogs'
+import { useNotify } from '../context/NotificationContext'
 
-const Blog = ({ blog, handleVote, handleDelete }) => {
-  const [visible, setVisible] = useState(false)
+const Blog = () => {
+  let { blogId } = useParams()
+  const notifyWith = useNotify()
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const [content, setContent] = useState('')
 
-  const nameOfUser = blog.user ? blog.user.name : 'anonymous'
+  const user = useSelector((state) => state.user.user)
 
-  const style = {
-    border: 'solid',
-    padding: 10,
-    borderWidth: 1,
-    marginBottom: 5,
+  const { mutateAsync: addCommentMutation } = useMutation({
+    mutationFn: blogService.addComment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', blogId] })
+    },
+  })
+  const handleComment = async (event) => {
+    event.preventDefault()
+    const obj = { id: blogId, content: content }
+    await addCommentMutation(obj)
+    setContent('')
   }
 
-  const canRemove = blog.user ? blog.user.username === storage.me() : true
+  const { data: blog, isLoading } = useQuery({
+    queryKey: ['post', blogId],
+    queryFn: () => blogService.getBlogById(blogId),
+  })
 
-  console.log(blog.user, storage.me(), canRemove)
+  const { mutateAsync: updateBlogMutation } = useMutation({
+    mutationFn: blogService.update,
+    onSuccess: (data) => {
+      notifyWith(`You liked ${data.title} by ${data.author}`)
+      queryClient.invalidateQueries({ queryKey: ['post', blogId] })
+    },
+  })
+
+  const handleVote = async (blog) => {
+    await updateBlogMutation({
+      ...blog,
+      likes: blog.likes + 1,
+    })
+  }
+
+  const { mutateAsync: deleteBlogMutation } = useMutation({
+    mutationFn: (blog) => blogService.remove(blog.id),
+    onSuccess: (data, variables) => {
+      notifyWith(`Blog ${variables.title}, by ${variables.author} removed`)
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+      navigate('/')
+    },
+  })
+  const handleDelete = async (blog) => {
+    if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
+      await deleteBlogMutation(blog)
+    }
+  }
+
+  if (isLoading) return null
+
+  const canRemove = blog?.user ? blog.user.username === user.username : true
 
   return (
-    <div style={style} className='blog'>
-      {blog.title} by {blog.author}
-      <button style={{ marginLeft: 3 }} onClick={() => setVisible(!visible)}>
-        {visible ? 'hide' : 'view'}
-      </button>
-      {visible && (
+    <div>
+      <div className="blog">
+        <h2>
+          {blog.title} {blog.author}
+        </h2>
         <div>
-          <div>
-            <a href={blog.url}>{blog.url}</a>
-          </div>
-          <div>
-            likes {blog.likes}
-            <button style={{ marginLeft: 3 }} onClick={() => handleVote(blog)}>
-              like
-            </button>
-          </div>
-          <div>{nameOfUser}</div>
-          {canRemove && (
-            <button onClick={() => handleDelete(blog)}>remove</button>
-          )}
+          <a href={blog.url}>{blog.url}</a>
         </div>
-      )}
+        <div>
+          {blog.likes} likes
+          <button style={{ marginLeft: 3 }} onClick={() => handleVote(blog)}>
+            like
+          </button>
+        </div>
+        <div>added by {blog?.user.username}</div>
+        {canRemove && (
+          <button onClick={() => handleDelete(blog)}>remove</button>
+        )}
+      </div>
+      <div className="comments">
+        <h3>comments</h3>
+        <form onSubmit={handleComment}>
+          <input
+            type="text"
+            name="content"
+            aria-label="comment"
+            value={content}
+            onChange={({ target }) => setContent(target.value)}
+          />
+          <button>add comment</button>
+        </form>
+        <ul>
+          {blog.comments &&
+            blog.comments.map((comment) => (
+              <li key={comment.id}>{comment.content}</li>
+            ))}
+        </ul>
+      </div>
     </div>
   )
-}
-
-Blog.propTypes = {
-  blog: PropTypes.shape({
-    url: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    likes: PropTypes.number.isRequired,
-    user: PropTypes.object,
-  }).isRequired,
-  handleVote: PropTypes.func.isRequired,
-  handleDelete: PropTypes.func.isRequired,
 }
 
 export default Blog
