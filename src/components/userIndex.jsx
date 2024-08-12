@@ -2,6 +2,9 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import userService from '../services/users'
+import Col from 'react-bootstrap/Col'
+import Row from 'react-bootstrap/Row'
+
 const UserIndex = () => {
   const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
@@ -11,12 +14,19 @@ const UserIndex = () => {
   return (
     <div>
       <h2>Users</h2>
-      {users.length && <div>blogs created</div>}
+      {users.length && (
+        <Row className="border-bottom pb-2">
+          <Col xs={6}>Name</Col>
+          <Col xs={6}>Blogs created</Col>
+        </Row>
+      )}
       {users?.map((user) => (
-        <div key={user.id}>
-          <Link to={`/users/${user.id}`}>{user.name}</Link>
-          <div>{user.blogs.length}</div>
-        </div>
+        <Row key={user.id}>
+          <Col xs={6} as={Link} to={`/users/${user.id}`}>
+            {user.name}
+          </Col>
+          <Col xs={6}>{user.blogs.length}</Col>
+        </Row>
       ))}
     </div>
   )

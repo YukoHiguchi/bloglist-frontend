@@ -2,6 +2,10 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import Button from 'react-bootstrap/Button'
+import Form from 'react-bootstrap/Form'
+import ListGroup from 'react-bootstrap/ListGroup'
+
 import blogService from '../services/blogs'
 import { useNotify } from '../context/NotificationContext'
 
@@ -27,7 +31,12 @@ const Blog = () => {
     setContent('')
   }
 
-  const { data: blog, isLoading } = useQuery({
+  const {
+    data: blog,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['post', blogId],
     queryFn: () => blogService.getBlogById(blogId),
   })
@@ -61,48 +70,59 @@ const Blog = () => {
     }
   }
 
-  if (isLoading) return null
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+  if (isError) {
+    return <div>Error: {error.message}</div>
+  }
 
   const canRemove = blog?.user ? blog.user.username === user.username : true
 
   return (
     <div>
       <div className="blog">
-        <h2>
+        <h1>
           {blog.title} {blog.author}
-        </h2>
+        </h1>
         <div>
           <a href={blog.url}>{blog.url}</a>
         </div>
         <div>
           {blog.likes} likes
-          <button style={{ marginLeft: 3 }} onClick={() => handleVote(blog)}>
+          <Button className="ms-2 btn-sm" onClick={() => handleVote(blog)}>
             like
-          </button>
+          </Button>
         </div>
         <div>added by {blog?.user.username}</div>
         {canRemove && (
-          <button onClick={() => handleDelete(blog)}>remove</button>
+          <Button className="my-3" onClick={() => handleDelete(blog)}>
+            remove
+          </Button>
         )}
       </div>
       <div className="comments">
-        <h3>comments</h3>
-        <form onSubmit={handleComment}>
-          <input
-            type="text"
-            name="content"
-            aria-label="comment"
-            value={content}
-            onChange={({ target }) => setContent(target.value)}
-          />
-          <button>add comment</button>
-        </form>
-        <ul>
+        <h2>comments</h2>
+        <Form onSubmit={handleComment} className="mb-4">
+          <Form.Group className="mb-3" controlId="formGridComment">
+            <Form.Control
+              placeholder="comment"
+              name="content"
+              aria-label="comment"
+              value={content}
+              onChange={({ target }) => setContent(target.value)}
+            />
+          </Form.Group>
+          <Button type="submit">add comment</Button>
+        </Form>
+        <ListGroup as="ol" numbered>
           {blog.comments &&
             blog.comments.map((comment) => (
-              <li key={comment.id}>{comment.content}</li>
+              <ListGroup.Item as="li" key={comment.id}>
+                {comment.content}
+              </ListGroup.Item>
             ))}
-        </ul>
+        </ListGroup>
       </div>
     </div>
   )

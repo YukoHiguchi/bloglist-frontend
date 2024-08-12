@@ -4,12 +4,18 @@ import { useNotify } from '../context/NotificationContext'
 import blogService from '../services/blogs'
 import NewBlog from './NewBlog'
 import Togglable from './Togglable'
+import ListGroup from 'react-bootstrap/ListGroup'
 
 const Blogs = () => {
   const queryClient = useQueryClient()
   const notifyWith = useNotify()
 
-  const { data: blogs, isLoading } = useQuery({
+  const {
+    data: blogs,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['posts'],
     queryFn: blogService.getAll,
     stateTime: Infinity,
@@ -29,27 +35,33 @@ const Blogs = () => {
   }
 
   const byLikes = (a, b) => b.likes - a.likes
-  const style = {
-    border: 'solid',
-    padding: 10,
-    borderWidth: 1,
-    marginBottom: 5,
-    display: 'block',
-  }
+
   if (isLoading) {
     return <div>Loading...</div>
   }
+  if (isError) {
+    return <div>Error: {error.message}</div>
+  }
   return (
-    <div>
+    <>
+      <h1>Blog list</h1>
       <Togglable buttonLabel="create new blog">
         <NewBlog doCreate={handleCreate} />
       </Togglable>
-      {blogs.sort(byLikes).map((blog) => (
-        <Link style={style} to={`/blogs/${blog.id}`} key={blog.id}>
-          {blog.title} {blog.author} {blog.id}
-        </Link>
-      ))}
-    </div>
+      <ListGroup className="blog-list">
+        {blogs.sort(byLikes).map((blog) => (
+          <ListGroup.Item
+            as={Link}
+            action
+            className="border p-2 mb-1"
+            to={`/blogs/${blog.id}`}
+            key={blog.id}
+          >
+            {blog.title} {blog.author} {blog.id}
+          </ListGroup.Item>
+        ))}
+      </ListGroup>
+    </>
   )
 }
 export default Blogs

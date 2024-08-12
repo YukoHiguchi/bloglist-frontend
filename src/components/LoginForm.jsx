@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import Form from 'react-bootstrap/Form'
+import Col from 'react-bootstrap/Col'
+import Row from 'react-bootstrap/Row'
+import Button from 'react-bootstrap/Button'
 
 const LoginForm = () => {
   const [username, setUsername] = useState('')
@@ -14,27 +18,42 @@ const LoginForm = () => {
   }
 
   return (
-    <form onSubmit={login}>
-      <label>
-        Username:
-        <input
-          type="text"
-          data-testid="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-      </label>
-      <label>
-        Password:
-        <input
-          type="password"
-          value={password}
-          data-testid="password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </label>
-      <input type="submit" value="Login" />
-    </form>
+    <>
+      <h1>Login</h1>
+      <Form onSubmit={login}>
+        <Form.Group as={Row} className="mb-3" controlId="loginFormUsername">
+          <Form.Label column sm="2">
+            Username
+          </Form.Label>
+          <Col sm="10">
+            <Form.Control
+              type="text"
+              placeholder="Username"
+              data-testid="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </Col>
+        </Form.Group>
+        <Form.Group as={Row} className="mb-3" controlId="loginFormPassword">
+          <Form.Label column sm="2">
+            Password
+          </Form.Label>
+          <Col sm="10">
+            <Form.Control
+              type="password"
+              placeholder="Password"
+              value={password}
+              data-testid="password"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </Col>
+        </Form.Group>
+        <Button type="submit" className="mb-2">
+          Login{' '}
+        </Button>
+      </Form>
+    </>
   )
 }
 

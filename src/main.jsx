@@ -6,6 +6,7 @@ import { NotificationContextProvider } from './context/NotificationContext'
 import { AuthProvider } from './context/AuthContext'
 import { BrowserRouter } from 'react-router-dom'
 import { store } from './store'
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
